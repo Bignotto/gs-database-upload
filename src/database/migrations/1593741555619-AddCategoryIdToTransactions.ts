@@ -14,7 +14,7 @@ export class AddCategoryIdToTransactions1593741555619
       new TableColumn({
         name: 'category_id',
         type: 'uuid',
-        isNullable: false,
+        isNullable: true,
       }),
     );
 
