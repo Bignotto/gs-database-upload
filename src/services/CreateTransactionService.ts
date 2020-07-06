@@ -2,7 +2,7 @@ import { getCustomRepository, getRepository } from 'typeorm';
 
 import TransactionRepository from '../repositories/TransactionsRepository';
 
-// import AppError from '../errors/AppError';
+import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
 import Category from '../models/Category';
 
@@ -20,9 +20,13 @@ class CreateTransactionService {
     type,
     category,
   }: Request): Promise<Transaction> {
-    // testa se category já existe
-    // se não existe cria
     const categoryRepository = getRepository(Category);
+    const transactionRepository = getCustomRepository(TransactionRepository);
+
+    const { total } = await transactionRepository.getBalance();
+    if (type === 'outcome' && value > total)
+      throw new AppError(`${total} is not enough`);
+
     const checkCategory = await categoryRepository.findOne({
       where: { title: category },
     });
@@ -37,10 +41,7 @@ class CreateTransactionService {
     } else {
       category_id = checkCategory.id;
     }
-    //valida valor com saldo
-    //erro se não puder
-    //salva no banco
-    const transactionRepository = getCustomRepository(TransactionRepository);
+
     const transaction = transactionRepository.create({
       title,
       value,

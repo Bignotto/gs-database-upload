@@ -8,48 +8,28 @@ interface Balance {
   total: number;
 }
 
-interface TransactionInterface {
-  id: string;
-  title: string;
-  type: string;
-  value: number;
-  created_at: Date;
-  updated_at: Date;
-}
-
 @EntityRepository(Transaction)
 class TransactionsRepository extends Repository<Transaction> {
   public async getBalance(): Promise<Balance> {
-    const incomeTransactions = await this.find({
-      where: { type: 'income' },
-    });
+    const transactions = await this.find();
+    if (!transactions) return { income: 0, outcome: 0, total: 0 };
+
+    const incomes = transactions.filter(({ type }) => type === 'income');
     let incomeTotal = 0;
-    console.log(incomeTransactions);
-    if (incomeTransactions.length > 0) {
-      const incomeToSum = incomeTransactions.map(({ value }) => value);
-      incomeTotal = incomeToSum.reduce((sum, value) => {
-        return sum + value;
-      });
+    if (incomes.length > 0) {
+      const incomesToSum = incomes.map(({ value }) => Number(value));
+      incomeTotal = incomesToSum.reduce((sum, t) => sum + t);
     }
-    const outcomeTransactions = await this.find({
-      where: { type: 'outcome' },
-    });
-    let outcomeTotal = 0.0;
-    if (outcomeTransactions.length > 0) {
-      const outcomeToSum = outcomeTransactions.map(({ value }) => value);
-      outcomeTotal = outcomeToSum.reduce((sum, value) => {
-        return sum + value;
-      });
+
+    const outcomes = transactions.filter(({ type }) => type === 'outcome');
+    let outcomeTotal = 0;
+    if (outcomes.length > 0) {
+      const outcomesToSum = outcomes.map(({ value }) => Number(value));
+      outcomeTotal = outcomesToSum.reduce((sum, t) => sum + t);
     }
-    //subtract outcome from income
-    const result = incomeTotal - outcomeTotal;
-    const balance = {
-      income: incomeTotal,
-      outcome: outcomeTotal,
-      total: result,
-    };
-    return balance;
+
+    const total = incomeTotal - outcomeTotal;
+    return { income: incomeTotal, outcome: outcomeTotal, total };
   }
 }
-
 export default TransactionsRepository;
