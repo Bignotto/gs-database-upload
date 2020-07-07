@@ -9,9 +9,8 @@ class DeleteTransactionService {
     const transactionRepository = getCustomRepository(TransactionRepository);
 
     await transactionRepository.delete({ id });
-    console.log('deletou');
+
     return;
-    // TODO
   }
 }
 
